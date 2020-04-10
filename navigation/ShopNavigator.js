@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -45,20 +45,24 @@ const ProductsNavigator = () => (
     }}
   >
     <Stack.Screen
-      options={{
+      component={ProductsOverviewScreen}
+      name="ProductsOverview"
+      options={(navData) => ({
         headerTitle: 'All Products',
-        headerLeft: (navData) => (
-          <HeaderButtons HeaderButtonComponent={HeaderButton}>
-            <Item
-              title="Menu"
-              iconName={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
-              onPress={() => {
-                navData.navigation.toggleDrawer();
-              }}
-            />
-          </HeaderButtons>
-        ),
-        headerRight: (navData) => (
+        headerLeft: () => {
+          return (
+            <HeaderButtons HeaderButtonComponent={HeaderButton}>
+              <Item
+                title="Menu"
+                iconName={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
+                onPress={() => {
+                  navData.navigation.toggleDrawer();
+                }}
+              />
+            </HeaderButtons>
+          );
+        },
+        headerRight: () => (
           <HeaderButtons HeaderButtonComponent={HeaderButton}>
             <Item
               title="Cart"
@@ -69,21 +73,19 @@ const ProductsNavigator = () => (
             />
           </HeaderButtons>
         ),
-      }}
-      name="ProductsOverview"
-      component={ProductsOverviewScreen}
+      })}
     />
     <Stack.Screen
-      options={{
-        headerTitle: (navData) => navData.navigation.getParam('productTitle'),
-      }}
       name="ProductDetail"
       component={ProductDetailScreen}
+      options={(navData) => ({
+        headerTitle: navData.route.params?.productTitle || route.name,
+      })}
     />
     <Stack.Screen
-      options={{ headerTitle: 'Your Cart' }}
       name="Cart"
       component={CartScreen}
+      options={{ headerTitle: 'Your Cart' }}
     />
   </Stack.Navigator>
 );
@@ -102,9 +104,9 @@ const OrdersNavigator = () => (
     }}
   >
     <Stack.Screen
-      options={{
+      options={(navData) => ({
         headerTitle: 'Your Orders',
-        headerLeft: (navData) => (
+        headerLeft: () => (
           <HeaderButtons HeaderButtonComponent={HeaderButton}>
             <Item
               title="Menu"
@@ -115,7 +117,7 @@ const OrdersNavigator = () => (
             />
           </HeaderButtons>
         ),
-      }}
+      })}
       name="Orders"
       component={OrdersScreen}
     />
@@ -136,9 +138,9 @@ const AdminNavigator = () => (
     }}
   >
     <Stack.Screen
-      options={{
+      options={(navData) => ({
         headerTitle: 'Your Products',
-        headerLeft: (navData) => (
+        headerLeft: () => (
           <HeaderButtons HeaderButtonComponent={HeaderButton}>
             <Item
               title="Menu"
@@ -149,7 +151,7 @@ const AdminNavigator = () => (
             />
           </HeaderButtons>
         ),
-        headerRight: (navData) => (
+        headerRight: () => (
           <HeaderButtons HeaderButtonComponent={HeaderButton}>
             <Item
               title="Add"
@@ -160,31 +162,16 @@ const AdminNavigator = () => (
             />
           </HeaderButtons>
         ),
-      }}
+      })}
       name="UserProducts"
       component={UserProductsScreen}
     />
     <Stack.Screen
-      options={{
-        headerTitle: (navData) =>
-          navData.navigation.getParam('productId')
-            ? 'Edit Product'
-            : 'Add Product',
-        headerRight: (navData) => {
-          const submitFn = navData.navigation.getParam('submit');
-          return (
-            <HeaderButtons HeaderButtonComponent={HeaderButton}>
-              <Item
-                title="Save"
-                iconName={
-                  Platform.OS === 'android' ? 'md-checkmark' : 'ios-checkmark'
-                }
-                onPress={submitFn}
-              />
-            </HeaderButtons>
-          );
-        },
-      }}
+      options={(navData) => ({
+        headerTitle: navData.route.params?.productId
+          ? 'Edit Product'
+          : 'Add Product',
+      })}
       name="EditProduct"
       component={EditProductScreen}
     />
