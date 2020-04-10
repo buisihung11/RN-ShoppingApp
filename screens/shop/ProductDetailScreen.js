@@ -8,16 +8,26 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useProduct } from '../../store/reducers/products';
-
+import { useCart } from '../../store/reducers/cart';
 import Colors from '../../constants/Colors';
 import * as cartActions from '../../store/actions/cart';
 
 const ProductDetailScreen = (props) => {
-  const productId = props.navigation.getParam('productId');
-  const [{ availableProducts }, dispatch] = useProduct();
+  const { productId } = props.route.params || { productId: 'p1' };
+  console.log('productId', productId);
+  const [{ availableProducts }] = useProduct();
   const selectedProduct = availableProducts.find(
     (prod) => prod.id === productId
   );
+
+  const [, dispatch] = useCart();
+
+  if (!selectedProduct)
+    return (
+      <View>
+        <Text>Something wrong</Text>
+      </View>
+    );
 
   return (
     <ScrollView>
