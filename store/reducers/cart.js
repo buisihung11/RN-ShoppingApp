@@ -1,8 +1,8 @@
-import React, { createContext, useReducer, useMemo, useContext } from "react";
-import { ADD_TO_CART, REMOVE_FROM_CART } from "../actions/cart";
-import { ADD_ORDER } from "../actions/orders";
-import CartItem from "../../models/cart-item";
-import { DELETE_PRODUCT } from "../actions/products";
+import React, { createContext, useReducer, useMemo, useContext } from 'react';
+import { ADD_TO_CART, REMOVE_FROM_CART } from '../actions/cart';
+import { ADD_ORDER } from '../actions/orders';
+import CartItem from '../../models/cart-item';
+import { DELETE_PRODUCT } from '../actions/products';
 
 const CartContext = createContext();
 
@@ -16,7 +16,7 @@ const CartProvider = (props) => {
 const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error("useMeal must be used within a CartProvider");
+    throw new Error('useCart must be used within a CartProvider');
   }
 
   const [state, dispatch] = context;
@@ -32,6 +32,7 @@ const initialState = {
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case ADD_TO_CART:
+      console.log('action,  ', action, 'state', state);
       const addedProduct = action.product;
       const prodPrice = addedProduct.price;
       const prodTitle = addedProduct.title;
@@ -90,8 +91,9 @@ const reducer = (state = initialState, action) => {
         items: updatedItems,
         totalAmount: state.totalAmount - itemTotal,
       };
-  }
 
-  return state;
+    default:
+      return state;
+  }
 };
 export { CartProvider as default, useCart };
