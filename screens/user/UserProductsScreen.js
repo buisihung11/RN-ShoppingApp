@@ -8,11 +8,12 @@ import ProductItem from '../../components/shop/ProductItem';
 import Colors from '../../constants/Colors';
 import * as productsActions from '../../store/actions/products';
 
-const UserProductsScreen = props => {
-  const userProducts = useSelector(state => state.products.userProducts);
-  const dispatch = useDispatch();
+import { useProduct } from '../../store/reducers/products';
 
-  const editProductHandler = id => {
+const UserProductsScreen = (props) => {
+  const [{ userProducts }, dispatch] = useProduct();
+
+  const editProductHandler = (id) => {
     props.navigation.navigate('EditProduct', { productId: id });
   };
 
@@ -24,16 +25,16 @@ const UserProductsScreen = props => {
         style: 'destructive',
         onPress: () => {
           dispatch(productsActions.deleteProduct(id));
-        }
-      }
+        },
+      },
     ]);
   };
 
   return (
     <FlatList
       data={userProducts}
-      keyExtractor={item => item.id}
-      renderItem={itemData => (
+      keyExtractor={(item) => item.id}
+      renderItem={(itemData) => (
         <ProductItem
           image={itemData.item.imageUrl}
           title={itemData.item.title}
@@ -58,34 +59,6 @@ const UserProductsScreen = props => {
       )}
     />
   );
-};
-
-UserProductsScreen.navigationOptions = navData => {
-  return {
-    headerTitle: 'Your Products',
-    headerLeft: (
-      <HeaderButtons HeaderButtonComponent={HeaderButton}>
-        <Item
-          title="Menu"
-          iconName={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
-          onPress={() => {
-            navData.navigation.toggleDrawer();
-          }}
-        />
-      </HeaderButtons>
-    ),
-    headerRight: (
-      <HeaderButtons HeaderButtonComponent={HeaderButton}>
-        <Item
-          title="Add"
-          iconName={Platform.OS === 'android' ? 'md-create' : 'ios-create'}
-          onPress={() => {
-            navData.navigation.navigate('EditProduct');
-          }}
-        />
-      </HeaderButtons>
-    )
-  };
 };
 
 export default UserProductsScreen;
