@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { StyleSheet } from "react-native";
-import { AppLoading } from 'expo';
-import * as Font from 'expo-font';
+import React, { useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { AppLoading } from "expo";
+import * as Font from "expo-font";
 import ShopNavigator from "./navigation/ShopNavigator";
+import CartProvider from "./store/reducers/cart";
+import OrderProvider from "./store/reducers/orders";
+import ProductProvider from "./store/reducers/products";
 
 const fetchFonts = () => {
   return Font.loadAsync({
@@ -24,7 +27,15 @@ export default function App() {
       />
     );
   }
-  return <ShopNavigator />;
+  return (
+    <CartProvider>
+      <OrderProvider>
+        <ProductProvider>
+          <ShopNavigator />
+        </ProductProvider>
+      </OrderProvider>
+    </CartProvider>
+  );
 }
 const styles = StyleSheet.create({
   container: {
