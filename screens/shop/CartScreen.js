@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, FlatList, Button, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Button, StyleSheet, Alert } from 'react-native';
+import axios from 'axios';
 
 import Colors from '../../constants/Colors';
 import CartItem from '../../components/shop/CartItem';
@@ -32,6 +33,25 @@ const CartScreen = (props) => {
 
   const cartItems = transformCart(items);
 
+  const orderSubmitHandler = async () => {
+    try {
+      const {
+        data: { name },
+      } = await axios.post(
+        'https://shopping-app-native.firebaseio.com/orders.json',
+        {
+          items: cartItems,
+          amount: cartTotalAmount,
+          readableDate: new Date().toDateString(),
+        }
+      );
+      console.log('res_Order', name);
+      Alert.alert('Order success', 'Your order was made', [{ text: 'Okay' }]);
+    } catch (err) {
+      console.log('err', err);
+    }
+  };
+
   return (
     <View style={styles.screen}>
       <Card style={styles.summary}>
@@ -45,9 +65,7 @@ const CartScreen = (props) => {
           color={Colors.accent}
           title="Order Now"
           disabled={cartItems.length === 0}
-          onPress={() => {
-            orderDispatcher(ordersActions.addOrder(cartItems, cartTotalAmount));
-          }}
+          onPress={orderSubmitHandler}
         />
       </Card>
       <FlatList
