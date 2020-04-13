@@ -1,4 +1,10 @@
-## Task list
+<h1 align="center">
+  <a href="https://buisihung11.github.io/">
+    React Native - Shopping App 🛒
+  </a>
+</h1>
+
+## 📃 Task list (#-task-list)
 ### Phase 1
 - [x] Submit order to firebase 
 - [x] Fetch orders from firebase 
