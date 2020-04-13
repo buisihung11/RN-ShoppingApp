@@ -34,9 +34,6 @@ const OrdersScreen = (props) => {
     setOrders(transformOrder(data.val()));
     setIsFetching(false);
 
-    return () => {
-      unsubcribe();
-    };
   }, []);
 
   useEffect(() => {
