@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useReducer,
   useLayoutEffect,
+  useState,
 } from 'react';
 import {
   View,
@@ -11,7 +12,9 @@ import {
   Platform,
   Alert,
   KeyboardAvoidingView,
+  Text,
 } from 'react-native';
+import { db } from '../../store/firebase';
 import { HeaderButtons, Item } from 'react-navigation-header-buttons';
 
 import HeaderButton from '../../components/UI/HeaderButton';
@@ -48,17 +51,32 @@ const formReducer = (state, action) => {
 const EditProductScreen = ({ navigation, route }) => {
   const { productId } = route.params || {};
 
+  const [editedProduct, setEditedProduct] = useState(null);
+  const [handling, setHandling] = useState(false);
+  useEffect(() => {
+    if (productId) {
+      // fetch product from firebase
+      const fetchProductById = async () => {
+        setHandling(true);
+        const { data } = await db.ref('products/' + productId).once('value');
+        setEditedProduct(data);
+        setHandling(false);
+      };
+      fetchProductById();
+    }
+  }, [productId]);
+
   const [{ userProducts }, dispatch] = useProduct();
-  const editedProduct = userProducts.find((prod) => prod.id === productId);
-  console.log('editedProduct', editedProduct);
   const isEditMode = editedProduct ? true : false;
 
   const [formState, dispatchFormState] = useReducer(formReducer, {
     inputValues: {
-      title: editedProduct ? editedProduct.title : '',
-      imageUrl: editedProduct ? editedProduct.imageUrl : '',
-      description: editedProduct ? editedProduct.description : '',
-      price: '',
+      title: editedProduct ? editedProduct.title : 'Product title',
+      imageUrl: editedProduct
+        ? editedProduct.imageUrl
+        : 'https://unsplash.com/photos/6cHumpSxTvs',
+      description: editedProduct ? editedProduct.description : 'Description',
+      price: '20',
     },
     inputValidities: {
       title: isEditMode,
@@ -69,51 +87,43 @@ const EditProductScreen = ({ navigation, route }) => {
     formIsValid: !isEditMode,
   });
 
-  const submitHandler = useCallback(async () => {
-    console.log('submit');
-    // if (!formState.formIsValid) {
-    //   Alert.alert('Wrong input!', 'Please check the errors in the form.', [
-    //     { text: 'Okay' },
-    //   ]);
-    //   return;
-    // }
-    if (isEditMode) {
-      dispatch(
-        productsActions.updateProduct(
-          productId,
-          formState.inputValues.title,
-          formState.inputValues.description,
-          formState.inputValues.imageUrl
-        )
-      );
-    } else {
+  const editProductHandler = useCallback(async () => {
+    const res = await db.ref('products').child(productId).update({
+      title: formState.inputValues.title,
+      description: formState.inputValues.description,
+      imageUrl: formState.inputValues.imageUrl,
+    });
+
+    console.log('res_edit', res);
+  }, [productId]);
+
+  const addProductHandler = useCallback(async () => {
+    try {
       const product = {
         title: formState.inputValues.title,
         description: formState.inputValues.description,
         imageUrl: formState.inputValues.imageUrl,
         price: +formState.inputValues.price,
       };
-      const response = await fetch(
-        'https://shopping-app-native.firebaseio.com/products.json',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(product),
-        }
-      );
-      const resData = await response.json();
-      if (resData.error) {
-        Alert.alert('Cannt add product !', resData.error, [{ text: 'Okay' }]);
-      } else {
-        console.log('resData', resData);
-        dispatch(
-          productsActions.createProduct({ ...product, id: resData.name })
-        );
-      }
+
+      console.log('add_product', product);
+      const productsRef = db.ref('products');
+      const newProdRef = productsRef.push();
+
+      await newProdRef.set(product);
+      console.log('add new product success', newProdRef);
+    } catch (err) {
+      console.log('err', err);
     }
-    navigation.goBack();
+  }, []);
+
+  const submitHandler = useCallback(async () => {
+    if (isEditMode) {
+      editProductHandler();
+    } else {
+      addProductHandler();
+    }
+    // navigation.goBack();
   }, [dispatch, productId, formState]);
 
   useLayoutEffect(() => {
@@ -146,11 +156,19 @@ const EditProductScreen = ({ navigation, route }) => {
     [dispatchFormState]
   );
 
+  if (handling) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Fetching products... 🐱‍🏍</Text>
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior="padding"
-      keyboardVerticalOffset={100}
+      keyboardVerticalOffset={10}
     >
       <ScrollView>
         <View style={styles.form}>
@@ -163,7 +181,7 @@ const EditProductScreen = ({ navigation, route }) => {
             autoCorrect
             returnKeyType="next"
             onInputChange={inputChangeHandler}
-            initialValue={editedProduct ? editedProduct.title : ''}
+            initialValue={editedProduct ? editedProduct.title : 'Product title'}
             initiallyValid={!!editedProduct}
             required
           />
@@ -174,7 +192,11 @@ const EditProductScreen = ({ navigation, route }) => {
             keyboardType="default"
             returnKeyType="next"
             onInputChange={inputChangeHandler}
-            initialValue={editedProduct ? editedProduct.imageUrl : ''}
+            initialValue={
+              editedProduct
+                ? editedProduct.imageUrl
+                : 'https://images.unsplash.com/photo-1520591799316-6b30425429aa?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80'
+            }
             initiallyValid={!!editedProduct}
             required
           />
@@ -185,6 +207,7 @@ const EditProductScreen = ({ navigation, route }) => {
               errorText="Please enter a valid price!"
               keyboardType="decimal-pad"
               returnKeyType="next"
+              initialValue="20"
               onInputChange={inputChangeHandler}
               required
               min={0.1}
@@ -200,7 +223,7 @@ const EditProductScreen = ({ navigation, route }) => {
             multiline
             numberOfLines={3}
             onInputChange={inputChangeHandler}
-            initialValue={editedProduct ? editedProduct.description : ''}
+            initialValue={editedProduct ? editedProduct.description : 'Desc'}
             initiallyValid={!!editedProduct}
             required
             minLength={5}
