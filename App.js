@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AppLoading } from 'expo';
+import { NavigationContainer } from '@react-navigation/native';
 import ErrorBoundary from 'react-native-error-boundary';
 import * as Font from 'expo-font';
 import ShopNavigator from './navigation/ShopNavigator';
 import CartProvider from './store/reducers/cart';
 import OrderProvider from './store/reducers/orders';
 import ProductProvider from './store/reducers/products';
+import AuthScreen from './screens/user/AuthScreen';
 
 const fetchFonts = () => {
   return Font.loadAsync({
@@ -17,6 +19,7 @@ const fetchFonts = () => {
 
 export default function App() {
   const [fontLoaded, setFontLoaded] = useState(false);
+  const [isLogedIn, setIsLogedIn] = useState(false);
 
   if (!fontLoaded) {
     return (
@@ -33,7 +36,9 @@ export default function App() {
       <OrderProvider>
         <ProductProvider>
           <ErrorBoundary>
-            <ShopNavigator />
+            <NavigationContainer>
+              {isLogedIn ? <ShopNavigator /> : <AuthScreen />}
+            </NavigationContainer>
           </ErrorBoundary>
         </ProductProvider>
       </OrderProvider>
