@@ -1,7 +1,15 @@
 ## Task list
+### Phase 1
+- [x] Submit order to firebase 
+- [x] Fetch orders from firebase 
+- [x] Pull to fetch orders from firebase 
+- [x] Fetch products from firebase 
+- [x] Pull to refetch product list 
+- [x] CRUD with product from firebase
 
-- [ ] Submit order to firebase 
-- [ ] Fetch product from firebase 
-- [ ] Pull to refetch product list 
-- [ ] CRUD with product from firebase
-- [ ] Authentication 
+### Phase 2
+- [ ] Login, Sign up  
+- [ ] Database Permission  
+- [ ] Action Permission (for edit)  
+- [ ] Auto login with AsynStorage  
+- [ ] Create Startup Screen 
