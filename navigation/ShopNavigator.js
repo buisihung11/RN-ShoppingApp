@@ -1,7 +1,6 @@
 import React from 'react';
 import { Platform, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 
@@ -187,9 +186,7 @@ const ShopNavigator = () => (
 );
 
 const Root = () => (
-  <NavigationContainer>
     <ShopNavigator />
-  </NavigationContainer>
 );
 
 export default Root;
