@@ -1,11 +1,5 @@
-import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  KeyboardAvoidingView,
-} from 'react-native';
+import React, { useState, useCallback, useReducer } from 'react';
+import { StyleSheet, ScrollView, KeyboardAvoidingView } from 'react-native';
 import { Button } from 'react-native-elements';
 import { createStackNavigator } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,9 +7,99 @@ import Input from '../../components/UI/Input';
 import Card from '../../components/UI/Card';
 import Colors from '../../constants/Colors';
 
+import { auth } from '../../store/firebase';
+
 const { Navigator, Screen } = createStackNavigator();
 
+const FORM_INPUT_UPDATE = 'FORM_INPUT_UPDATE';
+
+const formReducer = (state, action) => {
+  if (action.type === FORM_INPUT_UPDATE) {
+    const updatedValues = {
+      ...state.inputValues,
+      [action.input]: action.value,
+    };
+    const updatedValidities = {
+      ...state.inputValidities,
+      [action.input]: action.isValid,
+    };
+    let updatedFormIsValid = true;
+    for (const key in updatedValidities) {
+      updatedFormIsValid = updatedFormIsValid && updatedValidities[key];
+    }
+    return {
+      formIsValid: updatedFormIsValid,
+      inputValidities: updatedValidities,
+      inputValues: updatedValues,
+    };
+  }
+  return state;
+};
+
 const AuthScreen = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const [{ inputValues }, dispatchFormState] = useReducer(formReducer, {
+    inputValues: {
+      email: 'tester@gmail.com',
+      password: 'tester',
+    },
+    inputValidities: {
+      email: false,
+      password: false,
+    },
+    formIsValid: false,
+  });
+
+  const handleSubmit = useCallback(async () => {
+    const submitFunc = isLogin ? handleLogin : handleSignUp;
+    setIsProcessing(true);
+    await submitFunc();
+    setIsProcessing(false);
+  }, [isLogin, handleLogin, handleSignUp]);
+
+  const handleLogin = useCallback(async () => {
+    const res = await auth.signInWithEmailAndPassword(
+      inputValues.email,
+      inputValues.password
+    );
+
+    console.log('userRes', res);
+    return res;
+  }, []);
+
+  const handleSignUp = useCallback(async () => {
+    try {
+      console.log('sign_up', inputValues.email, inputValues.password);
+      const res = await auth.createUserWithEmailAndPassword(
+        inputValues.email,
+        inputValues.password
+      );
+
+      return res;
+    } catch (error) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      if (errorCode == 'auth/weak-password') {
+        alert('The password is too weak.');
+      } else {
+        alert(errorMessage);
+      }
+    }
+  }, []);
+  const inputChangeHandler = useCallback(
+    (inputIdentifier, inputValue, inputValidity) => {
+      dispatchFormState({
+        type: FORM_INPUT_UPDATE,
+        value: inputValue,
+        isValid: inputValidity,
+        input: inputIdentifier,
+      });
+    },
+    [dispatchFormState]
+  );
+
   return (
     <KeyboardAvoidingView
       behavior="height"
@@ -33,8 +117,8 @@ const AuthScreen = () => {
               email
               autoCapitialize="none"
               errorMessage="Please enter a valid email address"
-              onInputChange={() => {}}
-              initialValue=""
+              onInputChange={inputChangeHandler}
+              initialValue={inputValues.email}
             />
             <Input
               id="password"
@@ -45,23 +129,25 @@ const AuthScreen = () => {
               minLength={5}
               autoCapitialize="none"
               errorMessage="Please enter a valid email password"
-              onInputChange={() => {}}
-              initialValue=""
+              onInputChange={inputChangeHandler}
+              initialValue={inputValues.password}
             />
             <Button
-              title="Login"
+              title={isLogin ? 'Login' : 'Sign up'}
+              loading={isProcessing}
               buttonStyle={{
                 backgroundColor: Colors.primary,
-                marginVertical: 10,
+                marginTop: 10,
               }}
-              onPress={() => {}}
+              onPress={handleSubmit}
             />
             <Button
-              title="Swith to signup"
+              title={`Swith to ${isLogin ? 'Signup' : 'Login'}`}
               buttonStyle={{
                 backgroundColor: Colors.accent,
+                marginVertical: 10,
               }}
-              onPress={() => {}}
+              onPress={() => setIsLogin((prev) => !prev)}
             />
           </ScrollView>
         </Card>
@@ -69,6 +155,8 @@ const AuthScreen = () => {
     </KeyboardAvoidingView>
   );
 };
+
+// TODO: Add Startup Screen to check whether user is logged in
 
 const AuthScreenNavaigator = () => (
   <Navigator
