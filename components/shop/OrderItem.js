@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
-
+import moment from 'moment';
 import CartItem from './CartItem';
 import Colors from '../../constants/Colors';
 import Card from '../UI/Card';
 
-const OrderItem = (props) => {
+const OrderItem = ({ date, amount, items }) => {
   const [showDetails, setShowDetails] = useState(false);
 
   return (
     <Card style={styles.orderItem}>
       <View style={styles.summary}>
-        <Text style={styles.totalAmount}>${props.amount.toFixed(2)}</Text>
-        <Text style={styles.date}>{props.date}</Text>
+        <Text style={styles.totalAmount}>{`$${amount.toFixed(2)}`}</Text>
+        <Text style={styles.date}>
+          {date ? moment(date, 'MMMM Do YYYY, h:mm:ss a').fromNow() : 'N/A'}
+        </Text>
       </View>
       <Button
         color={Colors.primary}
@@ -23,7 +25,7 @@ const OrderItem = (props) => {
       />
       {showDetails && (
         <View style={styles.detailItems}>
-          {props.items.map((cartItem) => (
+          {items.map((cartItem) => (
             <CartItem
               key={cartItem.productId}
               quantity={cartItem.quantity}

@@ -13,6 +13,7 @@ import OrdersScreen from '../screens/shop/OrdersScreen';
 import UserProductsScreen from '../screens/user/UserProductsScreen';
 import EditProductScreen from '../screens/user/EditProductScreen';
 import Colors from '../constants/Colors';
+import DrawerContent from './DrawerContent';
 
 const defaultNavOptions = {
   headerStyle: {
@@ -178,15 +179,28 @@ const AdminNavigator = () => (
 );
 
 const ShopNavigator = () => (
-  <Drawer.Navigator drawerContentOptions={{ activeTintColor: Colors.primary }}>
-    <Drawer.Screen name="Products" component={ProductsNavigator} />
-    <Drawer.Screen name="Orders" component={OrdersNavigator} />
-    <Drawer.Screen name="Admin" component={AdminNavigator} />
+  <Drawer.Navigator
+    drawerContent={(props) => <DrawerContent {...props} />}
+    drawerContentOptions={{ activeTintColor: Colors.primary }}
+  >
+    <Drawer.Screen
+      name="Products"
+      options={{ drawerIcon: () => <Ionicons size={25} name="ios-shirt" /> }}
+      component={ProductsNavigator}
+    />
+    <Drawer.Screen
+      options={{ drawerIcon: () => <Ionicons size={25} name="ios-list" /> }}
+      name="Orders"
+      component={OrdersNavigator}
+    />
+    <Drawer.Screen
+      options={{ drawerIcon: () => <Ionicons size={25} name="ios-woman" /> }}
+      name="Admin"
+      component={AdminNavigator}
+    />
   </Drawer.Navigator>
 );
 
-const Root = () => (
-    <ShopNavigator />
-);
+const Root = () => <ShopNavigator />;
 
 export default Root;
