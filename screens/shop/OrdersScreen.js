@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList } from 'react-native';
 import { db } from '../../store/firebase';
 import OrderItem from '../../components/shop/OrderItem';
-
-import { useOrder } from '../../store/reducers/orders';
+import { useUser } from '../../store/reducers/user';
+import { Title } from 'react-native-paper';
 
 const transformOrder = (orders) => {
+  if (!orders) return null;
   const ordersId = Object.keys(orders);
 
   const transformedOrders = [];
@@ -22,19 +23,19 @@ const OrdersScreen = (props) => {
   // const [{ orders }] = useOrder();
   const [orders, setOrders] = useState(null);
   const [isFetching, setIsFetching] = useState(true);
+  const [
+    {
+      user: { uid },
+    },
+  ] = useUser();
 
   const fetchOrders = useCallback(async () => {
     setIsFetching(true);
-    const data = await db.ref('/orders').once('value');
-    // const orderRef = db.ref('/orders');
-    // const unsubcribe = orderRef.on('value', (snapshot) => {
-    //   console.log('snapshot', snapshot.key, snapshot.val());
-    // });
-
+    const data = await db.ref('orders').child(uid).once('value');
+    console.log('orderData', data);
     setOrders(transformOrder(data.val()));
     setIsFetching(false);
-
-  }, []);
+  }, [uid]);
 
   useEffect(() => {
     // fetch order
@@ -48,10 +49,10 @@ const OrdersScreen = (props) => {
       </View>
     );
 
-  if (orders && orders.length === 0) {
+  if (!orders || (orders && orders.length === 0)) {
     return (
-      <View>
-        <Text>No orders was created</Text>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Title>No orders was created</Title>
       </View>
     );
   }

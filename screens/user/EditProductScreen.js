@@ -22,6 +22,7 @@ import * as productsActions from '../../store/actions/products';
 import Input from '../../components/UI/Input';
 
 import { useProduct } from '../../store/reducers/products';
+import { useUser } from '../../store/reducers/user';
 
 const FORM_INPUT_UPDATE = 'FORM_INPUT_UPDATE';
 
@@ -50,6 +51,11 @@ const formReducer = (state, action) => {
 
 const EditProductScreen = ({ navigation, route }) => {
   const { productId } = route.params || {};
+  const [
+    {
+      user: { uid },
+    },
+  ] = useUser();
 
   const [editedProduct, setEditedProduct] = useState(null);
   const [handling, setHandling] = useState(false);
@@ -58,7 +64,7 @@ const EditProductScreen = ({ navigation, route }) => {
       // fetch product from firebase
       const fetchProductById = async () => {
         setHandling(true);
-        const { data } = await db.ref('products/' + productId).once('value');
+        const { data } = await db.ref(`products/${productId}`).once('value');
         setEditedProduct(data);
         setHandling(false);
       };
@@ -92,6 +98,7 @@ const EditProductScreen = ({ navigation, route }) => {
       title: formState.inputValues.title,
       description: formState.inputValues.description,
       imageUrl: formState.inputValues.imageUrl,
+      ownerId: uid,
     });
 
     console.log('res_edit', res);
@@ -104,6 +111,7 @@ const EditProductScreen = ({ navigation, route }) => {
         description: formState.inputValues.description,
         imageUrl: formState.inputValues.imageUrl,
         price: +formState.inputValues.price,
+        ownerId: uid,
       };
 
       console.log('add_product', product);

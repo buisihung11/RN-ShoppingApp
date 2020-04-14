@@ -1,13 +1,52 @@
-import React from 'react';
-import { FlatList, Button, Platform, Alert } from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { FlatList, Button, Alert, View } from 'react-native';
+import { ActivityIndicator, Title } from 'react-native-paper';
 import ProductItem from '../../components/shop/ProductItem';
 import Colors from '../../constants/Colors';
 import * as productsActions from '../../store/actions/products';
+import { db } from '../../store/firebase';
+import { useUser } from '../../store/reducers/user';
 
-import { useProduct } from '../../store/reducers/products';
+const transformProduct = (products) => {
+  const productsId = Object.keys(products);
+
+  const transformedProducts = [];
+
+  productsId.forEach((id) => {
+    const product = products[id];
+    transformedProducts.push({ id, ...product });
+  });
+
+  return transformedProducts;
+};
 
 const UserProductsScreen = (props) => {
-  const [{ userProducts }, dispatch] = useProduct();
+  const [
+    {
+      user: { uid },
+    },
+  ] = useUser();
+
+  const [products, setProducts] = useState(null);
+  const [isFetching, setIsFetching] = useState(true);
+
+  const fetchProducts = useCallback(async () => {
+    setIsFetching(true);
+    const data = await db
+      .ref('/products')
+      .orderByChild('ownerId')
+      .equalTo(uid)
+      .once('value');
+
+    console.log('data', data);
+    setProducts(transformProduct(data.val()));
+    setIsFetching(false);
+  }, [uid]);
+
+  useEffect(() => {
+    // fetch products
+    fetchProducts();
+  }, [fetchProducts]);
 
   const editProductHandler = (id) => {
     props.navigation.navigate('EditProduct', { productId: id });
@@ -26,9 +65,17 @@ const UserProductsScreen = (props) => {
     ]);
   };
 
+  if (isFetching)
+    return (
+      <View>
+        <ActivityIndicator animating={true} color={Colors.primary} />
+        <Title>Fetching your products</Title>
+      </View>
+    );
+
   return (
     <FlatList
-      data={userProducts}
+      data={products}
       keyExtractor={(item) => item.id}
       renderItem={(itemData) => (
         <ProductItem

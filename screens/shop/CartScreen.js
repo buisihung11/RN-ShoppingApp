@@ -1,15 +1,14 @@
 import React from 'react';
 import { View, Text, FlatList, Button, StyleSheet, Alert } from 'react-native';
-import axios from 'axios';
-
 import Colors from '../../constants/Colors';
 import CartItem from '../../components/shop/CartItem';
 import Card from '../../components/UI/Card';
 import * as cartActions from '../../store/actions/cart';
-import * as ordersActions from '../../store/actions/orders';
 
 import { useCart } from '../../store/reducers/cart';
-import { useOrder } from '../../store/reducers/orders';
+import { db } from '../../store/firebase';
+import { useUser } from '../../store/reducers/user';
+import moment from 'moment';
 
 const transformCart = (items) => {
   const transformedCartItems = [];
@@ -29,26 +28,27 @@ const transformCart = (items) => {
 
 const CartScreen = (props) => {
   const [{ totalAmount: cartTotalAmount, items }, cartDispatcher] = useCart();
-  const [, orderDispatcher] = useOrder();
-
+  const [
+    {
+      user: { uid },
+    },
+  ] = useUser();
   const cartItems = transformCart(items);
 
   const orderSubmitHandler = async () => {
     try {
-      const {
-        data: { name },
-      } = await axios.post(
-        'https://shopping-app-native.firebaseio.com/orders.json',
-        {
-          items: cartItems,
-          amount: cartTotalAmount,
-          readableDate: new Date().toDateString(),
-        }
-      );
-      console.log('res_Order', name);
+      const res = await (await db.ref('orders').child(uid).push()).set({
+        items: cartItems,
+        amount: cartTotalAmount,
+        readableDate: moment().format('MMMM Do YYYY, h:mm:ss a'),
+      });
+
+      console.log('res_Order', res);
       Alert.alert('Order success', 'Your order was made', [{ text: 'Okay' }]);
+      cartDispatcher({ type: 'CLEAR_CART' });
     } catch (err) {
       console.log('err', err);
+      Alert.alert('Order failed', err.message, [{ text: 'Okay' }]);
     }
   };
 
